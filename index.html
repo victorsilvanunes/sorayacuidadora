@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agenda de Passeios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #121016;
+    --bg-card: #1C1922;
+    --ink: #ECE8F2;
+    --ink-soft: #8F87A0;
+    --pine: #7E4BC4;
+    --pine-soft: #9668D6;
+    --mustard: #FF6F18;
+    --mustard-dark: #CC591A;
+    --sky: #6E9BB5;
+    --whatsapp: #3AA34A;
+    --line: #2A2732;
+    --full: #FF4F7B;
+    --full-bg: #33202A;
+    --ok-bg: #241F30;
+    --radius: 14px;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+  }
+  header.top { margin-bottom: 20px; }
+  .brand { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: 34px;
+    line-height: 1.05;
+    margin: 0;
+    color: var(--pine);
+  }
+  .tag {
+    font-size: 13px;
+    color: var(--ink-soft);
+    border-left: 2px solid var(--mustard);
+    padding-left: 10px;
+  }
+  .sub { margin-top: 8px; color: var(--ink-soft); font-size: 15px; max-width: 48ch; }
+
+  .hours-panel {
+    background: var(--ok-bg);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 16px 0 0;
+    font-size: 13.5px;
+    color: var(--pine-soft);
+  }
+  .hours-panel .hline { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; }
+  .hours-panel .hline b { color: var(--pine); font-weight: 600; }
+
+  .panel {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px 0;
+  }
+  .panel h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 19px;
+    margin: 0 0 14px;
+    color: var(--pine);
+  }
+
+  form.add-form { display: grid; gap: 12px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  label { display: block; font-size: 12.5px; color: var(--ink-soft); margin-bottom: 5px; }
+  input, select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 15px;
+  }
+  input:focus, select:focus, button:focus-visible {
+    outline: 2px solid var(--sky);
+    outline-offset: 1px;
+  }
+  input:disabled, select:disabled { opacity: .5; cursor: not-allowed; }
+
+  .dogs-picker { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .stepper { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+  .stepper button { width: 38px; height: 38px; border: none; background: var(--bg); color: var(--pine); font-size: 18px; cursor: pointer; }
+  .stepper button:hover { background: var(--ok-bg); }
+  .stepper span { width: 34px; text-align: center; font-weight: 600; font-size: 15px; }
+  .slot-note { font-size: 13px; color: var(--ink-soft); }
+  .slot-note.full { color: var(--full); font-weight: 600; }
+
+  .submit-btn {
+    margin-top: 4px;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 9px;
+    background: var(--pine);
+    color: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .submit-btn:hover { background: var(--pine-soft); }
+  .submit-btn:disabled { background: var(--line); color: var(--ink-soft); cursor: not-allowed; }
+
+  .day-group { margin-bottom: 18px; }
+  .day-heading {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--pine);
+    text-transform: capitalize;
+    margin: 0 0 8px 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .day-heading .count { font-weight: 400; color: var(--ink-soft); }
+
+  .slot-card {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    background: var(--bg-card);
+  }
+  .slot-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .slot-time { font-weight: 600; font-size: 15px; }
+  .capacity-pill {
+    font-size: 12px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--ok-bg);
+    color: var(--pine-soft);
+    font-weight: 600;
+  }
+  .capacity-pill.full { background: var(--full-bg); color: var(--full); }
+
+  .walk-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+    gap: 8px;
+  }
+  .walk-item:first-of-type { border-top: none; }
+  .walk-info b { color: var(--ink); }
+  .walk-info span { color: var(--ink-soft); display: block; font-size: 12.5px; }
+  .walk-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .wa-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid var(--whatsapp);
+    background: transparent;
+    color: var(--whatsapp);
+    text-decoration: none;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+  .wa-btn:hover { background: var(--whatsapp); color: #fff; }
+  .del-btn {
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 4px 6px;
+  }
+  .del-btn:hover { color: var(--full); }
+
+  .empty { text-align: center; padding: 36px 20px; color: var(--ink-soft); font-size: 14.5px; }
+  .empty .paw { font-size: 26px; display: block; margin-bottom: 8px; }
+
+  .settings-toggle {
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    font-size: 12.5px;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+  }
+  footer.note { text-align: center; font-size: 12.5px; color: var(--ink-soft); margin-top: 24px; display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <h1>Agenda de Passeios</h1>
+      <span class="tag">até 3 cães por hora</span>
+    </div>
+    <p class="sub">Organize os passeios da semana e confirme com o tutor direto pelo WhatsApp.</p>
+    <div class="hours-panel">
+      <div class="hline"><span>Terça e quinta</span><b>9h – 11h</b></div>
+      <div class="hline"><span>Terça, quinta e sexta</span><b>16h – 18h</b></div>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2>Novo passeio</h2>
+    <form class="add-form" id="addForm">
+      <div class="row2">
+        <div>
+          <label for="ownerName">Nome do tutor</label>
+          <input type="text" id="ownerName" required placeholder="ex: Marta Silva">
+        </div>
+        <div>
+          <label for="dogName">Nome do cão</label>
+          <input type="text" id="dogName" required placeholder="ex: Bolinha">
+        </div>
+      </div>
+      <div class="row2">
+        <div>
+          <label for="date">Data</label>
+          <input type="date" id="date" required>
+        </div>
+        <div>
+          <label for="time">Horário</label>
+          <select id="time" required></select>
+        </div>
+      </div>
+      <div>
+        <label for="phone">WhatsApp do tutor</label>
+        <input type="tel" id="phone" placeholder="ex: 912 345 678">
+      </div>
+      <div>
+        <label>Quantos cães desta vez?</label>
+        <div class="dogs-picker">
+          <div class="stepper">
+            <button type="button" id="minusDogs" aria-label="Diminuir">–</button>
+            <span id="dogsCount">1</span>
+            <button type="button" id="plusDogs" aria-label="Aumentar">+</button>
+          </div>
+          <span class="slot-note" id="slotNote">Escolha uma data válida</span>
+        </div>
+      </div>
+      <button type="submit" class="submit-btn" id="submitBtn">Adicionar passeio</button>
+    </form>
+  </section>
+
+  <section id="scheduleSection">
+    <div id="scheduleList"></div>
+  </section>
+
+  <footer class="note">
+    <span id="settingsLine">
+      <button class="settings-toggle" id="settingsToggle">definir meu número de WhatsApp</button>
+    </span>
+    <span>Os dados ficam guardados só neste dispositivo.</span>
+  </footer>
+
+  <section class="panel" id="settingsPanel" style="display:none;">
+    <h2>Meu WhatsApp</h2>
+    <label for="myPhone">Usado para o botão "confirmar" (opcional, é só um atalho — os botões abrem o WhatsApp do tutor)</label>
+    <input type="tel" id="myPhone" placeholder="ex: 351 912 345 678">
+  </section>
+
+</div>
+
+<script>
+(function() {
+  const STORAGE_KEY = 'dogwalk_bookings_v2';
+  const SETTINGS_KEY = 'dogwalk_settings_v2';
+  const MAX_DOGS = 3;
+
+  // weekday: 0=Sun ... 2=Tue, 4=Thu, 5=Fri. Values = list of hour-start slots "HH:00"
+  const SCHEDULE = {
+    2: ['09:00', '10:00', '16:00', '17:00'],
+    4: ['09:00', '10:00', '16:00', '17:00'],
+    5: ['16:00', '17:00']
+  };
+  const WEEKDAY_NAMES = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+
+  let bookings = [];
+  let settings = {};
+
+  function loadData() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      bookings = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(bookings)) bookings = [];
+    } catch (e) { bookings = []; }
+    try {
+      const rawS = localStorage.getItem(SETTINGS_KEY);
+      settings = rawS ? JSON.parse(rawS) : {};
+    } catch (e) { settings = {}; }
+  }
+  function saveBookings() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings)); } catch (e) {}
+  }
+  function saveSettings() {
+    try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) {}
+  }
+
+  function uid() { return 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+  function weekdayOf(dateStr) {
+    return new Date(dateStr + 'T00:00:00').getDay();
+  }
+
+  function slotsForDate(dateStr) {
+    if (!dateStr) return [];
+    return SCHEDULE[weekdayOf(dateStr)] || [];
+  }
+
+  function slotCount(date, time) {
+    return bookings
+      .filter(b => b.date === date && b.time === time)
+      .reduce((sum, b) => sum + b.numDogs, 0);
+  }
+
+  function waLink(phone, text) {
+    const digits = (phone || '').replace(/[^\d]/g, '');
+    let num = digits;
+    if (num.length === 9) num = '351' + num; // Portuguese mobile without country code
+    else if (digits.startsWith('00')) num = digits.slice(2);
+    return 'https://wa.me/' + num + '?text=' + encodeURIComponent(text);
+  }
+
+  function fmtDateHeading(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    const today = new Date(); today.setHours(0,0,0,0);
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+    const opts = { weekday: 'long', day: 'numeric', month: 'long' };
+    let label = d.toLocaleDateString('pt-PT', opts);
+    if (d.getTime() === today.getTime()) label = 'Hoje · ' + label;
+    else if (d.getTime() === tomorrow.getTime()) label = 'Amanhã · ' + label;
+    return label;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // --- time <select> options based on chosen date ---
+  function refreshTimeOptions() {
+    const dateInput = document.getElementById('date');
+    const timeSelect = document.getElementById('time');
+    const submitBtn = document.getElementById('submitBtn');
+    const note = document.getElementById('slotNote');
+    const slots = slotsForDate(dateInput.value);
+
+    timeSelect.innerHTML = '';
+    if (slots.length === 0) {
+      timeSelect.disabled = true;
+      const opt = document.createElement('option');
+      opt.textContent = 'Sem passeios neste dia';
+      timeSelect.appendChild(opt);
+      note.textContent = dateInput.value
+        ? 'Só há passeios terça e quinta (9h–11h) e terça, quinta e sexta (16h–18h)'
+        : 'Escolha uma data';
+      note.className = 'slot-note full';
+      submitBtn.disabled = true;
+      return;
+    }
+    timeSelect.disabled = false;
+    slots.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t;
+      opt.textContent = t + ' – ' + addHour(t);
+      timeSelect.appendChild(opt);
+    });
+    renderSlotNote();
+  }
+
+  function addHour(hhmm) {
+    const [h, m] = hhmm.split(':').map(Number);
+    return String((h + 1) % 24).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+  }
+
+  function renderSlotNote() {
+    const date = document.getElementById('date').value;
+    const time = document.getElementById('time').value;
+    const numDogs = parseInt(document.getElementById('dogsCount').textContent, 10);
+    const note = document.getElementById('slotNote');
+    const submitBtn = document.getElementById('submitBtn');
+
+    if (!date || !time || slotsForDate(date).length === 0) return;
+
+    const used = slotCount(date, time);
+    const free = MAX_DOGS - used;
+    if (free <= 0) {
+      note.textContent = 'Horário cheio (' + used + '/' + MAX_DOGS + ')';
+      note.className = 'slot-note full';
+      submitBtn.disabled = true;
+    } else if (numDogs > free) {
+      note.textContent = 'Só há ' + free + ' vaga(s) neste horário';
+      note.className = 'slot-note full';
+      submitBtn.disabled = true;
+    } else {
+      note.textContent = free + ' vaga(s) livre(s) neste horário';
+      note.className = 'slot-note';
+      submitBtn.disabled = false;
+    }
+  }
+
+  function render() {
+    refreshTimeOptions();
+    renderSchedule();
+  }
+
+  function renderSchedule() {
+    const list = document.getElementById('scheduleList');
+    const today = new Date(); today.setHours(0,0,0,0);
+    const todayStr = today.toISOString().slice(0,10);
+
+    const upcoming = bookings
+      .filter(b => b.date >= todayStr)
+      .sort((a,b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+    if (upcoming.length === 0) {
+      list.innerHTML = '<div class="empty"><span class="paw">🐾</span>Ainda não há passeios marcados.<br>Adicione o primeiro acima.</div>';
+      return;
+    }
+
+    const byDate = {};
+    upcoming.forEach(b => { (byDate[b.date] = byDate[b.date] || []).push(b); });
+
+    let html = '';
+    Object.keys(byDate).sort().forEach(date => {
+      const dayBookings = byDate[date];
+      const totalDogs = dayBookings.reduce((s,b) => s + b.numDogs, 0);
+      html += '<div class="day-group">';
+      html += '<p class="day-heading">' + fmtDateHeading(date) + '<span class="count">· ' + totalDogs + ' cão(ães)</span></p>';
+
+      const byTime = {};
+      dayBookings.forEach(b => { (byTime[b.time] = byTime[b.time] || []).push(b); });
+
+      Object.keys(byTime).sort().forEach(time => {
+        const items = byTime[time];
+        const used = items.reduce((s,b) => s + b.numDogs, 0);
+        const isFull = used >= MAX_DOGS;
+        html += '<div class="slot-card">';
+        html += '<div class="slot-top"><span class="slot-time">' + time + ' – ' + addHour(time) + '</span>';
+        html += '<span class="capacity-pill' + (isFull ? ' full' : '') + '">' + used + '/' + MAX_DOGS + ' cães</span></div>';
+        items.forEach(b => {
+          const msg = 'Olá ' + b.ownerName + '! Confirmado o passeio do(a) ' + b.dogName + ' dia ' + fmtDateHeading(b.date).replace(/^Hoje · |^Amanhã · /,'') + ' às ' + b.time + '. 🐾';
+          html += '<div class="walk-item">';
+          html += '<div class="walk-info"><b>' + escapeHtml(b.dogName) + '</b> (' + b.numDogs + (b.numDogs > 1 ? ' cães' : ' cão') + ')';
+          html += '<span>' + escapeHtml(b.ownerName) + (b.phone ? ' · ' + escapeHtml(b.phone) : '') + '</span></div>';
+          html += '<div class="walk-actions">';
+          if (b.phone) {
+            html += '<a class="wa-btn" href="' + waLink(b.phone, msg) + '" target="_blank" rel="noopener">WhatsApp</a>';
+          }
+          html += '<button class="del-btn" data-id="' + b.id + '" aria-label="Remover">remover</button>';
+          html += '</div></div>';
+        });
+        html += '</div>';
+      });
+      html += '</div>';
+    });
+
+    list.innerHTML = html;
+    list.querySelectorAll('.del-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        bookings = bookings.filter(b => b.id !== btn.getAttribute('data-id'));
+        saveBookings();
+        render();
+      });
+    });
+  }
+
+  // --- steppers ---
+  document.getElementById('minusDogs').addEventListener('click', () => {
+    const span = document.getElementById('dogsCount');
+    span.textContent = Math.max(1, parseInt(span.textContent, 10) - 1);
+    renderSlotNote();
+  });
+  document.getElementById('plusDogs').addEventListener('click', () => {
+    const span = document.getElementById('dogsCount');
+    span.textContent = Math.min(MAX_DOGS, parseInt(span.textContent, 10) + 1);
+    renderSlotNote();
+  });
+  document.getElementById('date').addEventListener('input', refreshTimeOptions);
+  document.getElementById('time').addEventListener('change', renderSlotNote);
+
+  // settings toggle
+  document.getElementById('settingsToggle').addEventListener('click', () => {
+    const panel = document.getElementById('settingsPanel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    if (panel.style.display === 'block') panel.scrollIntoView({behavior:'smooth', block:'center'});
+  });
+  document.getElementById('myPhone').addEventListener('input', (e) => {
+    settings.myPhone = e.target.value;
+    saveSettings();
+  });
+
+  // default date = next valid day (today if valid+future slots exist, else next allowed weekday)
+  function defaultDateStr() {
+    const d = new Date();
+    for (let i = 0; i < 14; i++) {
+      const ds = d.toISOString().slice(0,10);
+      if (slotsForDate(ds).length > 0) return ds;
+      d.setDate(d.getDate() + 1);
+    }
+    return new Date().toISOString().slice(0,10);
+  }
+  const initialDate = defaultDateStr();
+  document.getElementById('date').value = initialDate;
+
+  document.getElementById('addForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const ownerName = document.getElementById('ownerName').value.trim();
+    const dogName = document.getElementById('dogName').value.trim();
+    const date = document.getElementById('date').value;
+    const time = document.getElementById('time').value;
+    const phone = document.getElementById('phone').value.trim();
+    const numDogs = parseInt(document.getElementById('dogsCount').textContent, 10);
+
+    if (!ownerName || !dogName || !date || !time || slotsForDate(date).length === 0) return;
+    if (slotCount(date, time) + numDogs > MAX_DOGS) { renderSlotNote(); return; }
+
+    bookings.push({ id: uid(), ownerName, dogName, date, time, phone, numDogs });
+    saveBookings();
+
+    document.getElementById('addForm').reset();
+    document.getElementById('date').value = initialDate;
+    document.getElementById('dogsCount').textContent = '1';
+
+    render();
+  });
+
+  if (settings.myPhone) document.getElementById('myPhone').value = settings.myPhone;
+
+  loadData();
+  render();
+})();
+</script>
+</body>
+</html>
